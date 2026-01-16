@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  password    String   // Encrypted password
+  cookies     String?  // JSON array of cookies from assisted login
+  description String?
+  teamUrl     String?  // OpenAI Team URL
+  status      String   @default("active") // active, inactive, error
+  lastLoginCheckAt DateTime?
+  loginError   String?
+  tags        String?  // JSON array of tags
+
+  // Configuration
+  autoInvite       Boolean @default(false)
+  inviteIntervalMs Int     @default(3000)
+
+  // Statistics
+  memberCount      Int @default(0)
+  lastSyncAt       DateTime?
+  lastInviteAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  members    Member[]
+  inviteJobs InviteJob[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  email     String
+  role      String   @default("member") // member, admin
+  status    String   @default("pending") // pending, invited, joined, failed
+
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  invitedAt DateTime?
+  joinedAt  DateTime?
+  failReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, email])
+  @@index([teamId])
+  @@index([status])
+}
+
+model InviteJob {
+  id          String   @id @default(cuid())
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  status      String   @default("pending") // pending, running, completed, failed
+  totalCount  Int      @default(0)
+  successCount Int     @default(0)
+  failCount   Int      @default(0)
+
+  emails      String   // JSON array of emails
+  logs        String?  // JSON array of log entries
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([teamId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed password
+  name      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
