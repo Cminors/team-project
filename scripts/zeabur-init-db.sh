@@ -18,4 +18,6 @@ else
   echo "[init] Already initialized, skip db push."
 fi
 
-exec npm run start
+PORT_NUM="${WEB_PORT:-${PORT:-3000}}"
+echo "[init] Using port: $PORT_NUM"
+exec npx next start -p "$PORT_NUM"
