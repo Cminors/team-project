@@ -38,4 +38,4 @@ ENV PUPPETEER_SKIP_DOWNLOAD=true
 EXPOSE 3000
 
 # 启动时部署迁移，再启动服务
-CMD ["sh", "-lc", "npx prisma migrate deploy && npm run start"]
+CMD ["sh", "-lc", "chmod +x scripts/zeabur-init-db.sh && scripts/zeabur-init-db.sh"]
