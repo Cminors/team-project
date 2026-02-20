@@ -1,14 +1,15 @@
 #!/bin/sh
 set -e
 
-echo "[init] NODE_ENV=$NODE_ENV"
 echo "[init] DATABASE_URL is set? ${DATABASE_URL:+yes}"
 
-# 只在第一次初始化时跑（通过标记文件避免每次启动都重建）
-MARKER="/app/.db-initialized"
+MARKER="/app/.automation-profiles/.db-initialized"
+
+# 确保目录存在（即使第一次启动也能创建）
+mkdir -p /app/.automation-profiles
 
 if [ ! -f "$MARKER" ]; then
-  echo "[init] First boot: prisma generate + db push (bootstrap schema)"
+  echo "[init] First boot: prisma generate + db push"
   npx prisma generate
   npx prisma db push
   touch "$MARKER"
@@ -17,5 +18,4 @@ else
   echo "[init] Already initialized, skip db push."
 fi
 
-echo "[init] Start app..."
 exec npm run start
